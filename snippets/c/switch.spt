@@ -1,4 +1,0 @@
-switch ( <#cursor#> ) {
-    case :
-	case :
-}

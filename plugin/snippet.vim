@@ -2,12 +2,14 @@
 " snippet.vim
 " a plugin for doing keyword replacement using vim's :read function
 " Author : Timothy Aldrich tim@aldrichsystems.com
-" last modified : August 9 , 2002
+" License: This file is placed in the public domain.
+" last modified : August 19 , 2002
 " Comments welcome
 " }}}
 " TODO: read replacement codes from snippetrc file ?
 " TODO: just find snippets directory in 'runtimepath'
 " {{{=ChangeLog================================================================
+" | 8/19/2002 added license information
 " | Thanks to Vikas Agnihotri for all these
 " | 8/9/2002 changed the visual selection from character wise 'v' to 
 " |          line wise 'V'
@@ -27,6 +29,7 @@ if exists("loaded_snippets")
     finish
 endif
 let loaded_snippets = 1
+let g:DEBUG_SNIPPET=1
 
 " set the Snippets root if not already defined
 if !exists("g:snippet_directory")
@@ -140,13 +143,14 @@ function! <SID>Do_Replacements() " {{{
         silent! exe "%s!<#ext#>!"  . s:_ext        ."!g"
 
         "move the cursor
-        exe Mark(s:_currentLine,s:_cursorPos)
+        exe Mark(s:_currentLine,s:_cursorPos+1)
 
 endfunction " }}}
 
 function! <SID>Get_IncludeType(lineNumber) " {{{
         exe 'hide :e ' . <SID>Get_IncludeFile()
         let s:_IncType = getline(a:lineNumber)
+        echo "lineNumber in include:".a:lineNumber
         exe 'bdelete'
         return s:_IncType
 endfunction " }}}
@@ -174,11 +178,16 @@ function! <SID>Get_GlobalSnippetFile(keyword) " {{{
 endfunction " }}}
 
 function! <SID>Run_Snippet() " {{{
+        "if has snippet
+        "insert file
+        "elseif has include
+        " if get IncludeType(count) = 
         let g:SnippetType    = <SID>Get_SnippetType()
         let g:SnippetKeyword = expand("<cword>")
         "Change the word
-        echo g:SnippetKeyword
-        if (<sid>Has_Snippet(g:SnippetKeyword)==0 && <sid>Has_GlobalSnippet(g:SnippetKeyword)==0)
+        if (g:DEBUG_SNIPPET==1) | echo "the keyword is ". g:SnippetKeyword | endif
+        if (<sid>Has_Snippet(g:SnippetKeyword)==0 && <sid>Has_GlobalSnippet(g:SnippetKeyword)==0 && <SID>Has_Include(g:SnippetKeyword)==0)
+                echo "None Found"
                 return ""
         endif
         exe "norm! \<Esc>bcw"
@@ -189,20 +198,24 @@ function! <SID>Run_Snippet() " {{{
         if (g:snippet_use_global == 1 )
                 let s:_hasGlobalSnippet = <SID>Has_GlobalSnippet(g:SnippetKeyword)
         endif
-        
+        echo "Global " . s:_hasGlobalSnippet
         if (s:_hasGlobalSnippet == 1)
                 call <SID>Insert_File(<SID>Get_GlobalSnippetFile(g:SnippetKeyword))
         else
                 let s:includeCount = 0
                 while ( s:_hasSnippet == 0 )
+                        if (g:DEBUG_SNIPPET==1) | echo "the current count is ".s:includeCount | endif
                         if (s:includeCount == g:snippet_max_depth) | break | endif
                         let s:_hasInclude = <SID>Has_Include(g:SnippetType)
                         if (s:_hasInclude == 1)
+                            let s:_originalSnippetType = g:SnippetType
                             let s:includeCount = s:includeCount + 1
                             let g:SnippetType = <SID>Get_IncludeType(s:includeCount)
+                            echo "g:SnippetType :".g:SnippetType
                         else
                             break
                         endif
+                        "let g:SnippetType = s:_originalSnippetType
                         let s:_hasSnippet = <SID>Has_Snippet(g:SnippetKeyword)
                 endwhile
                 call <SID>Insert_File(<SID>Get_SnippetFile(g:SnippetKeyword))
