@@ -1,0 +1,23 @@
+This is a mirror of http://www.vim.org/scripts/script.php?script_id=361
+
+Snippets are fragments of code, usually related to keywords . 
+For example the C language defines "for" and "do" as keywords, 
+among others.  Since "for" is usually written
+    as : 
+         for (...;...;...) {
+                 //code here
+         }
+Most users will create an abbreviation for the keyword "for" to add the
+parenthesis and curly-braces such as : 
+         iabb xFor for<space>(<space>;<space>;<space>)<space>{<cr><cr>}
+
+To accomplish this using snippets, create a file with these lines :
+
+ for ( <#cursor#>; ; ) {
+
+ }
+
+Now when editing a 'c' file, when you type 'for<C-S>' ,for is replaced by the
+snippet of code you placed in the file.  Additionally the cursor is placed 
+between the opening ( and the first ; ... ready for you to begin typing.
+
